@@ -24,7 +24,7 @@ def parse_arguments():
                         default="models/best_model.npy",
                         help="Relative path to saved model weights (.npy)")
     parser.add_argument("-d",   "--dataset",
-                        default="fashion_mnist",
+                        default="mnist",
                         choices=["mnist", "fashion_mnist"])
     parser.add_argument("-b",   "--batch_size",  type=int, default=256)
 

@@ -1,7 +1,11 @@
 {
-  "dataset": "fashion_mnist",
+  "dataset": "mnist",
   "num_layers": 3,
-  "hidden_size": [128, 128, 128],
+  "hidden_size": [
+    128,
+    128,
+    128
+  ],
   "activation": "relu",
   "optimizer": "adam",
   "learning_rate": 0.001,
