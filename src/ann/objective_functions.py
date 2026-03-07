@@ -35,24 +35,11 @@ class CrossEntropyLoss:
         return float(-np.sum(self.one_hot * (x - lse)) / N)
 
     def backward(self, logits=None, y_true=None) -> np.ndarray:
-        # If logits provided, recompute forward values
-        if logits is not None and y_true is not None:
-            N = logits.shape[0]
-
-            x = logits - np.max(logits, axis=1, keepdims=True)
-            lse = np.log(np.sum(np.exp(x), axis=1, keepdims=True))
-
-            probs = np.exp(x - lse)
-
-            if y_true.ndim == 1:
-                one_hot = np.zeros_like(probs)
-                one_hot[np.arange(N), y_true] = 1
-            else:
-                one_hot = y_true.astype(float)
-
-            return (probs - one_hot) / N
-
-        # otherwise rely on forward()
+        if self.probs is None:
+            if logits is None or y_true is None:
+                raise RuntimeError("Need logits and y_true if forward() wasn't called.")
+            self.forward(logits, y_true)
+        
         return (self.probs - self.one_hot) / self.N
 
 
