@@ -12,23 +12,32 @@ class CrossEntropyLoss:
     Accepts integer class labels OR one-hot encoded targets.
     """
 
-    def forward(self, logits: np.ndarray, y_true: np.ndarray) -> float:
-        N  = logits.shape[0]
-        x  = logits - np.max(logits, axis=1, keepdims=True)   # stability shift
-        lse = np.log(np.sum(np.exp(x), axis=1, keepdims=True)) # log-sum-exp
-        self.probs = np.exp(x - lse)                            # softmax probs
+    def __init__(self):
+        self.probs = None
+        self.one_hot = None
+        self.N = None
 
-        if y_true.ndim == 1:                                    # integer → one-hot
+    def forward(self, logits: np.ndarray, y_true: np.ndarray) -> float:
+        N = logits.shape[0]
+
+        x = logits - np.max(logits, axis=1, keepdims=True)   # stability shift
+        lse = np.log(np.sum(np.exp(x), axis=1, keepdims=True))
+
+        self.probs = np.exp(x - lse)
+
+        if y_true.ndim == 1:
             self.one_hot = np.zeros_like(self.probs)
             self.one_hot[np.arange(N), y_true] = 1.0
         else:
             self.one_hot = y_true.astype(float)
 
         self.N = N
+
         return float(-np.sum(self.one_hot * (x - lse)) / N)
 
-    def backward(self) -> np.ndarray:
-        """Gradient w.r.t. raw logits."""
+    def backward(self):
+        if self.probs is None:
+            raise RuntimeError("forward() must be called before backward()")
         return (self.probs - self.one_hot) / self.N
 
 
