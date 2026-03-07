@@ -24,7 +24,7 @@ def parse_arguments():
 
     # ── dataset & training ────────────────────────────────────────────────────
     parser.add_argument("-d",   "--dataset",
-                        default="fashion_mnist",
+                        default="mnist",
                         choices=["mnist", "fashion_mnist"],
                         help="Dataset to train on")
     parser.add_argument("-e",   "--epochs",
