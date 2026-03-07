@@ -4,7 +4,6 @@ Implements: Cross-Entropy, Mean Squared Error (MSE)
 """
 import numpy as np
 
-
 class CrossEntropyLoss:
     """
     Numerically-stable cross-entropy loss that expects raw logits.
@@ -20,7 +19,7 @@ class CrossEntropyLoss:
     def forward(self, logits: np.ndarray, y_true: np.ndarray) -> float:
         N = logits.shape[0]
 
-        x = logits - np.max(logits, axis=1, keepdims=True)   # stability shift
+        x = logits - np.max(logits, axis=1, keepdims=True)
         lse = np.log(np.sum(np.exp(x), axis=1, keepdims=True))
 
         self.probs = np.exp(x - lse)
@@ -35,9 +34,18 @@ class CrossEntropyLoss:
 
         return float(-np.sum(self.one_hot * (x - lse)) / N)
 
-    def backward(self):
-        if self.probs is None:
-            raise RuntimeError("forward() must be called before backward()")
+    def backward(self, logits=None, y_true=None) -> np.ndarray:
+        """
+        Gradient w.r.t. logits.
+        Supports both usages:
+        1) forward() -> backward()
+        2) backward(logits, y_true)
+        """
+
+        if logits is not None and y_true is not None:
+            # recompute forward internally
+            self.forward(logits, y_true)
+
         return (self.probs - self.one_hot) / self.N
 
 
@@ -59,7 +67,9 @@ class MSELoss:
         self.diff = pred - self.one_hot
         return float(np.mean(self.diff ** 2))
 
-    def backward(self) -> np.ndarray:
+    def backward(self, pred=None, y_true=None):
+        if pred is not None and y_true is not None:
+            self.forward(pred, y_true)
         return 2.0 * self.diff / self.diff.size
 
 
