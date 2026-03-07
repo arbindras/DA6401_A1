@@ -8,9 +8,9 @@ import json
 import os
 import sys
 import numpy as np
-import codecs
+from sklearn.metrics import f1_score
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
 
 from src.utils.data_loader import load_dataset
 from src.ann.neural_network import NeuralNetwork
@@ -61,10 +61,10 @@ def parse_arguments():
                         help="L2 regularisation coefficient (weight decay)")
     parser.add_argument("--beta1",
                         type=float, default=0.9,
-                        help="Adam/Nadam β₁ (first moment decay)")
+                        help="Adam/Nadam beta1 (first moment decay)")
     parser.add_argument("--beta2",
                         type=float, default=0.999,
-                        help="Adam/Nadam β₂ (second moment decay)")
+                        help="Adam/Nadam beta2 (second moment decay)")
     parser.add_argument("--beta",
                         type=float, default=0.9,
                         help="Momentum / NAG / RMSProp decay coefficient")
@@ -103,9 +103,9 @@ def parse_arguments():
 def _build_hidden_sizes(args):
     """
     Resolve hidden layer sizes from CLI args.
-    -sz 128 128 128   → [128, 128, 128]
-    -sz 128           → [128] * num_layers
-    (no -sz)          → [128] * num_layers  (default)
+    -sz 128 128 128  ->  [128, 128, 128]
+    -sz 128          ->  [128] * num_layers
+    (no -sz)         ->  [128] * num_layers  (default)
     All values capped at NeuralNetwork.MAX_NEURONS (128).
     """
     cap = NeuralNetwork.MAX_NEURONS
@@ -116,39 +116,35 @@ def _build_hidden_sizes(args):
     return [cap] * args.num_layers
 
 
-
 def _save_model(model, args, save_path: str):
     save_dir = os.path.dirname(os.path.abspath(save_path))
     os.makedirs(save_dir, exist_ok=True)
 
-
+    # Save weights as .npy dict
     weights = model.get_weights()
     np.save(save_path, weights)
     print(f"Weights saved -> {save_path}")
 
-
+    # Save config as JSON alongside weights
     config = {
-        "dataset": args.dataset,
-        "num_layers": args.num_layers,
-        "hidden_size": _build_hidden_sizes(args),
-        "activation": args.activation,
-        "optimizer": args.optimizer,
+        "dataset":       args.dataset,
+        "num_layers":    args.num_layers,
+        "hidden_size":   _build_hidden_sizes(args),
+        "activation":    args.activation,
+        "optimizer":     args.optimizer,
         "learning_rate": args.learning_rate,
-        "weight_decay": args.weight_decay,
-        "batch_size": args.batch_size,
-        "epochs": args.epochs,
-        "loss": args.loss,
-        "weight_init": args.weight_init,
-        "input_size": args.input_size,
-        "output_size": args.output_size,
+        "weight_decay":  args.weight_decay,
+        "batch_size":    args.batch_size,
+        "epochs":        args.epochs,
+        "loss":          args.loss,
+        "weight_init":   args.weight_init,
+        "input_size":    args.input_size,
+        "output_size":   args.output_size,
     }
-
     config_path = os.path.join(save_dir, "best_config.json")
-
     with open(config_path, "w") as f:
         json.dump(config, f, indent=2)
-
-    print(f"Config saved -> {config_path}")
+    print(f"Config saved  -> {config_path}")
 
 
 def main():
@@ -172,7 +168,7 @@ def main():
         )
 
     # ── data ──────────────────────────────────────────────────────────────────
-    print(f"Loading {args.dataset}…")
+    print(f"Loading {args.dataset}...")
     (X_train, y_train), (X_val, y_val), (X_test, y_test) = load_dataset(args.dataset)
     print(f"  train={X_train.shape}  val={X_val.shape}  test={X_test.shape}")
 
@@ -190,12 +186,21 @@ def main():
 
     # ── test evaluation ───────────────────────────────────────────────────────
     test_metrics = model.evaluate(X_test, y_test)
+
+    preds  = test_metrics["predictions"]
+    labels = y_test if y_test.ndim == 1 else np.argmax(y_test, axis=1)
+    test_f1 = float(f1_score(labels, preds, average="weighted"))
+
     print(f"\nTest  loss={test_metrics['loss']:.4f}  "
-          f"acc={test_metrics['accuracy']:.4f}")
+          f"acc={test_metrics['accuracy']:.4f}  "
+          f"f1={test_f1:.4f}")
 
     if wandb_run:
-        wandb_run.log({"test_loss": test_metrics["loss"],
-                       "test_acc":  test_metrics["accuracy"]})
+        wandb_run.log({
+            "test_loss": test_metrics["loss"],
+            "test_acc":  test_metrics["accuracy"],
+            "test_f1":   test_f1,
+        })
         wandb_run.finish()
 
     # ── save ──────────────────────────────────────────────────────────────────
