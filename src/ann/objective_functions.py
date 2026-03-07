@@ -35,17 +35,24 @@ class CrossEntropyLoss:
         return float(-np.sum(self.one_hot * (x - lse)) / N)
 
     def backward(self, logits=None, y_true=None) -> np.ndarray:
-        """
-        Gradient w.r.t. logits.
-        Supports both usages:
-        1) forward() -> backward()
-        2) backward(logits, y_true)
-        """
-
+        # If logits provided, recompute forward values
         if logits is not None and y_true is not None:
-            # recompute forward internally
-            self.forward(logits, y_true)
+            N = logits.shape[0]
 
+            x = logits - np.max(logits, axis=1, keepdims=True)
+            lse = np.log(np.sum(np.exp(x), axis=1, keepdims=True))
+
+            probs = np.exp(x - lse)
+
+            if y_true.ndim == 1:
+                one_hot = np.zeros_like(probs)
+                one_hot[np.arange(N), y_true] = 1
+            else:
+                one_hot = y_true.astype(float)
+
+            return (probs - one_hot) / N
+
+        # otherwise rely on forward()
         return (self.probs - self.one_hot) / self.N
 
 
