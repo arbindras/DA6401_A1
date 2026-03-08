@@ -35,11 +35,9 @@ class CrossEntropyLoss:
         return float(-np.sum(self.one_hot * (x - lse)) / N)
 
     def backward(self, logits=None, y_true=None) -> np.ndarray:
-        if self.probs is None:
-            if logits is None or y_true is None:
-                raise RuntimeError("Need logits and y_true if forward() wasn't called.")
+        # If logits/y_true provided, recompute forward state first
+        if logits is not None and y_true is not None:
             self.forward(logits, y_true)
-        
         return (self.probs - self.one_hot) / self.N
 
 
@@ -49,6 +47,9 @@ class MSELoss:
     Treats the network's output probabilities as regression targets.
     Accepts integer class labels OR one-hot encoded targets.
     """
+    def __init__(self):
+        self.one_hot = None
+        self.diff = None
 
     def forward(self, pred: np.ndarray, y_true: np.ndarray) -> float:
         N = pred.shape[0]
