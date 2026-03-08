@@ -158,10 +158,12 @@ def main():
         args.loss = "mse"
 
     # ── optional W&B ─────────────────────────────────────────────────────────
+    from typing import Any, cast
+
     wandb_run = None
     if args.wandb_project:
-        import wandb
-        wandb_run = wandb.init(
+        import wandb 
+        wandb_run = cast(Any,wandb).init(
             project=args.wandb_project,
             entity=args.wandb_entity if args.wandb_entity else None,
             config=vars(args),

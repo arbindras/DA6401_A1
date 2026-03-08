@@ -8,6 +8,8 @@ import json
 import os
 import sys
 import numpy as np
+from io import TextIOWrapper
+from typing import cast
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -104,9 +106,8 @@ def evaluate_model(model: NeuralNetwork, X_test, y_test) -> dict:
 
 def main() -> dict:
     if sys.platform == "win32":
-        sys.stdout.reconfigure(encoding='utf-8')
+        cast(TextIOWrapper, sys.stdout).reconfigure(encoding="utf-8")
     args = parse_arguments()
-
     print(f"Loading dataset: {args.dataset}…")
     _, _, (X_test, y_test) = load_dataset(args.dataset)
 

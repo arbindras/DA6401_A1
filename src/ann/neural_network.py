@@ -89,7 +89,7 @@ class NeuralNetwork:
           - self.grad_W[0] / self.grad_b[0] = gradients of the LAST layer
         Returns (grad_W, grad_b) as object arrays indexed from last→first layer.
         """
-        grad = self.loss_fn.backward()
+        grad = self.loss_fn.backward(y_pred, y_true)
 
         grad_W_list = []
         grad_b_list = []
