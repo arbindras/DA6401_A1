@@ -38,6 +38,8 @@ class CrossEntropyLoss:
         # If logits/y_true provided, recompute forward state first
         if logits is not None and y_true is not None:
             self.forward(logits, y_true)
+        if self.probs is None or self.one_hot is None:
+            raise RuntimeError("Call forward() before backward(), or pass logits and y_true.")
         return (self.probs - self.one_hot) / self.N
 
 
@@ -65,6 +67,8 @@ class MSELoss:
     def backward(self, pred=None, y_true=None):
         if pred is not None and y_true is not None:
             self.forward(pred, y_true)
+        if self.diff is None:
+            raise RuntimeError("Call forward() before backward(), or pass pred and y_true.")
         return 2.0 * self.diff / self.diff.size
 
 
