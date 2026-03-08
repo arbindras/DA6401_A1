@@ -1,8 +1,7 @@
 {
   "dataset": "mnist",
-  "num_layers": 4,
+  "num_layers": 3,
   "hidden_size": [
-    128,
     128,
     128,
     128
@@ -12,7 +11,7 @@
   "learning_rate": 0.001,
   "weight_decay": 0.0,
   "batch_size": 32,
-  "epochs": 20,
+  "epochs": 10,
   "loss": "cross_entropy",
   "weight_init": "xavier",
   "input_size": 784,

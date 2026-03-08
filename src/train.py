@@ -28,7 +28,7 @@ def parse_arguments():
                         choices=["mnist", "fashion_mnist"],
                         help="Dataset to train on")
     parser.add_argument("-e",   "--epochs",
-                        type=int, default=20,
+                        type=int, default=10,
                         help="Number of training epochs")
     parser.add_argument("-b",   "--batch_size",
                         type=int, default=32,
@@ -36,7 +36,7 @@ def parse_arguments():
 
     # ── architecture ──────────────────────────────────────────────────────────
     parser.add_argument("-nhl", "--num_layers",
-                        type=int, default=4,
+                        type=int, default=3,
                         help="Number of hidden layers")
     parser.add_argument("-sz",  "--hidden_size",
                         type=int, nargs="+", default=None,
